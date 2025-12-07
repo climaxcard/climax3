@@ -467,17 +467,10 @@ header{
 .iconimg img{ width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:1/1; }
 /* LINE / X は 1.4x 中央トリミング */
 .iconimg--line img,
-.iconimg--x img {
-  width: 140%;
-  height: 140%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
+.iconimg--x img,
 .iconimg--tiktok img {
-  width: 130%;
-  height: 130%;
+  width: 160%;
+  height: 160%;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -952,7 +945,7 @@ button, .btn, .iconbtn, .notice-toggle{ touch-action:manipulation; -webkit-tap-h
 @media (min-width:1024px){
   /* 全体をまとめて左に 10% シフト */
   header .header-wrap{
-    transform: translateX(-3.5%);
+    transform: translateX(-5%);
     will-change: transform;
   }
 
