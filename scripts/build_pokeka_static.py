@@ -469,12 +469,12 @@ header{
 .iconimg--line img,
 .iconimg--x img,
 .iconimg--tiktok img {
-  width: 160%;
-  height: 160%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  width:130%;
+  height:130%;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
 }
 
 /* Instagram は 1.1x 中央トリミング */
@@ -779,12 +779,6 @@ button, .btn, .iconbtn, .notice-toggle{ touch-action:manipulation; -webkit-tap-h
   /* 価格上段 / ボタン下段 の2段レイアウトを固定 */
   .grid.grid-img .card .foot{
     grid-template-rows: min-content var(--sp-btn-h-img) !important;
-  }
-
-  /* TikTokアイコンだけさらに拡大 */
-  .iconimg--tiktok img {
-    width: 160%;
-    height: 160%;
   }
 
   /* SP × 画像ON では型番を隠す */
