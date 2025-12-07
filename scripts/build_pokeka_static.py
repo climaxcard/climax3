@@ -787,12 +787,12 @@ button, .btn, .iconbtn, .notice-toggle{ touch-action:manipulation; -webkit-tap-h
   .grid.grid-img .card .foot{
     grid-template-rows: min-content var(--sp-btn-h-img) !important;
   }
-@media (max-width:700px){
+
+  /* TikTokアイコンだけさらに拡大 */
   .iconimg--tiktok img {
     width: 160%;
     height: 160%;
   }
-}
 
   /* SP × 画像ON では型番を隠す */
   .grid.grid-img .card .n .code{ display:none !important; }
