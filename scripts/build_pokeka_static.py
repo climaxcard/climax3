@@ -787,6 +787,12 @@ button, .btn, .iconbtn, .notice-toggle{ touch-action:manipulation; -webkit-tap-h
   .grid.grid-img .card .foot{
     grid-template-rows: min-content var(--sp-btn-h-img) !important;
   }
+@media (max-width:700px){
+  .iconimg--tiktok img {
+    width: 160%;
+    height: 160%;
+  }
+}
 
   /* SP × 画像ON では型番を隠す */
   .grid.grid-img .card .n .code{ display:none !important; }
@@ -946,7 +952,7 @@ button, .btn, .iconbtn, .notice-toggle{ touch-action:manipulation; -webkit-tap-h
 @media (min-width:1024px){
   /* 全体をまとめて左に 10% シフト */
   header .header-wrap{
-    transform: translateX(-7%);
+    transform: translateX(-3.5%);
     will-change: transform;
   }
 
