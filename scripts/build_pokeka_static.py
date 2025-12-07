@@ -466,9 +466,17 @@ header{
 .iconimg{ width:40px; height:40px; padding:0; overflow:hidden; border-radius:10px; aspect-ratio:1/1; line-height:0; position:relative; }
 .iconimg img{ width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:1/1; }
 /* LINE / X は 1.4x 中央トリミング */
-.iconimg--line img,
-.iconimg--x img,
-.iconimg--tiktok img {
+/* LINE / X / Tiktok アイコン画像のトリミング配置 */
+.iconimg--line img {
+  width:140%;
+  height:140%;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+}
+
+.iconimg--x img {
   width:130%;
   height:130%;
   position:absolute;
@@ -476,6 +484,16 @@ header{
   left:50%;
   transform:translate(-50%,-50%);
 }
+
+.iconimg--tiktok img {
+  width:120%;
+  height:120%;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+}
+
 
 /* Instagram は 1.1x 中央トリミング */
 .iconimg--ig img {
