@@ -55,6 +55,7 @@ LOGO_FILE_ENV      = os.getenv("LOGO_FILE", "").strip()
 X_ICON_FILE_ENV    = os.getenv("X_ICON_FILE", "").strip()
 LINE_ICON_FILE_ENV = os.getenv("LINE_ICON_FILE", "").strip()
 IG_ICON_FILE_ENV   = os.getenv("IG_ICON_FILE", "").strip()
+TT_ICON_FILE_ENV   = os.getenv("TT_ICON_FILE", "").strip()
 
 # よく使う固定ディレクトリ（探索用）
 FIXED_DIRS = [
@@ -101,12 +102,29 @@ def file_to_data_uri(p: Optional[Path]) -> str:
     except Exception:
         return ""
 
-LOGO_URI = file_to_data_uri(find_logo_path())
-X_ICON_URI    = file_to_data_uri(find_icon_path(X_ICON_FILE_ENV,    ["X.png","x.png","x-logo.png","assets/X.png"]))
-LINE_ICON_URI = file_to_data_uri(find_icon_path(LINE_ICON_FILE_ENV, ["LINE.png","line.png","line-icon.png","assets/LINE.png"]))
-INSTAGRAM_ICON_URI = file_to_data_uri(  # ← 追加
-    find_icon_path(IG_ICON_FILE_ENV, ["IG.png","Instagram.png","instagram.png","insta.png","assets/instagram.png","assets/IG.png"])
+LOGO_PATH = find_logo_path()
+X_ICON_PATH = find_icon_path(
+    X_ICON_FILE_ENV,
+    ["X.png","x.png","x-logo.png","assets/X.png"]
 )
+LINE_ICON_PATH = find_icon_path(
+    LINE_ICON_FILE_ENV,
+    ["LINE.png","line.png","line-icon.png","assets/LINE.png"]
+)
+INSTAGRAM_ICON_PATH = find_icon_path(
+    IG_ICON_FILE_ENV,
+    ["IG.png","Instagram.png","instagram.png","insta.png","assets/instagram.png","assets/IG.png"]
+)
+TIKTOK_ICON_PATH = find_icon_path(
+    TT_ICON_FILE_ENV,
+    ["TT.png","TikTok.png","tiktok.png","tiktok-icon.png","assets/tiktok.png","assets/TT.png"]
+)
+
+LOGO_URI = file_to_data_uri(LOGO_PATH)
+X_ICON_URI = file_to_data_uri(X_ICON_PATH)
+LINE_ICON_URI = file_to_data_uri(LINE_ICON_PATH)
+INSTAGRAM_ICON_URI = file_to_data_uri(INSTAGRAM_ICON_PATH)
+TIKTOK_ICON_URI = file_to_data_uri(TIKTOK_ICON_PATH)
 
 # ====== 入力 ======
 def _read_csv_auto(path: Path) -> pd.DataFrame:
@@ -452,6 +470,14 @@ header{
 .iconimg--x img {
   width: 140%;
   height: 140%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.iconimg--tiktok img {
+  width: 130%;
+  height: 130%;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1840,7 +1866,6 @@ document.addEventListener('dblclick', (e)=>{
 # ===== HTML =====
 def html_page(title: str, js_source: str, logo_uri: str, cards_json: str, updated_text: str = "") -> str:
     shop_svg   = "<svg viewBox='0 0 24 24' aria-hidden='true' fill='currentColor'><path d='M3 9.5V8l2.2-3.6c.3-.5.6-.7 1-.7h11.6c.4 0 .7.2 .9 .6L21 8v1.5c0 1-.8 1.8-1.8 1.8-.9 0-1.6-.6-1.8-1.4-.2 .8-.9 1.4-1.8 1.4s-1.6-.6-1.8-1.4c-.2 .8-.9 1.4-1.8 1.4C3.8 11.3 3 10.5 3 9.5zM5 12.5h14V20c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-7.5zm4 1.5v5h6v-5H9zM6.3 5.2 5 7.5h14l-1.3-2.3H6.3z'/></svg>"
-    login_svg  = "<svg viewBox='0 0 24 24' aria-hidden='true' fill='currentColor'><path d='M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.418 0-8 2.239-8 5v2h16v-2c0-2.761-3.582-5-8-5z'/></svg>"
     takuhai_svg= "<svg viewBox='0 0 24 24' aria-hidden='true' fill='currentColor'><path d='M3 6h11a2 2 0 0 1 2 2v1h3l2 3v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2H8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Zm0 2v9h2a2 2 0 0 1 2-2h8V8H3Zm16 3h-2v4h4v-3.2L19 11Z'/></svg>"
     parts=[]
     parts.append("<!doctype html><html lang='ja'><head><meta charset='utf-8'>")
@@ -1866,20 +1891,34 @@ def html_page(title: str, js_source: str, logo_uri: str, cards_json: str, update
     parts.append("<div class='actions'>")
     parts.append(f"<a class='iconbtn' href='{html_mod.escape(TAKUHAI_URL)}' target='_blank' rel='noopener'>{takuhai_svg}<span>郵送買取</span></a>")
     parts.append(f"<a class='iconbtn' href='https://www.climax-card.jp/' target='_blank' rel='noopener'>{shop_svg}<span>Shop</span></a>")
-    parts.append(f"<a class='iconbtn' href='https://www.climax-card.jp/member-login' target='_blank' rel='noopener'>{login_svg}<span>Login</span></a>")
+
     if X_ICON_URI:
-        parts.append(f"<a class='iconimg iconimg--x' href='https://x.com/climaxcard' target='_blank' rel='noopener'><img src='{X_ICON_URI}' alt='X'></a>")
-    if LINE_ICON_URI:
-        parts.append(f"<a class='iconimg iconimg--line' href='https://line.me/R/ti/p/{OA_ID}' target='_blank' rel='noopener'><img src='{LINE_ICON_URI}' alt='LINE'></a>")
-    if INSTAGRAM_ICON_URI:  # ← 追加（LINEと🛒の間）
         parts.append(
-        "<a class='iconimg iconimg--ig' "
-        "href='https://www.instagram.com/cardshopclimax?igsh=d3VybGZraHlhZXUy&utm_source=qr' "
-        "target='_blank' rel='noopener'>"
-        f"<img src='{INSTAGRAM_ICON_URI}' alt='Instagram'></a>"
-    )
+            f"<a class='iconimg iconimg--x' href='https://x.com/climaxcard' "
+            f"target='_blank' rel='noopener'><img src='{X_ICON_URI}' alt='X'></a>"
+        )
+    if LINE_ICON_URI:
+        parts.append(
+            f"<a class='iconimg iconimg--line' href='https://line.me/R/ti/p/{OA_ID}' "
+            f"target='_blank' rel='noopener'><img src='{LINE_ICON_URI}' alt='LINE'></a>"
+        )
+    if INSTAGRAM_ICON_URI:
+        parts.append(
+            "<a class='iconimg iconimg--ig' "
+            "href='https://www.instagram.com/cardshopclimax?igsh=d3VybGZraHlhZXUy&utm_source=qr' "
+            "target='_blank' rel='noopener'>"
+            f"<img src='{INSTAGRAM_ICON_URI}' alt='Instagram'></a>"
+        )
+    if TIKTOK_ICON_URI:
+        parts.append(
+            "<a class='iconimg iconimg--tiktok' "
+            "href='https://www.tiktok.com/@cardshopclimax' "
+            "target='_blank' rel='noopener'>"
+            f"<img src='{TIKTOK_ICON_URI}' alt='TikTok'></a>"
+        )
+
     parts.append("<button id='fabCart' class='iconbtn iconbtn--cart' type='button' aria-haspopup='dialog' aria-controls='cartModal'>🛒 <span id='fabBadge' class='badge'>0</span></button>")
-    parts.append("</div></div></header>")
+    parts.append("</div></header>")
 
     # ✅ notice（検索欄の“直前”に配置）
     parts.append(
@@ -1982,7 +2021,12 @@ write_mode("price_asc",  "'asc'",  "ポケカ買取表（price_asc）")
 
 print(f"[*] Excel/CSV: {EXCEL_PATH!r}")
 print(f"[*] PER_PAGE={PER_PAGE}  BUILD_THUMBS={'1' if BUILD_THUMBS else '0'}")
-print(f"[LOGO] {'embedded' if LOGO_URI else 'not found (fallback text used)'}")
-print(f"[X ICON] {'embedded' if X_ICON_URI else 'not found'}")
-print(f"[LINE ICON] {'embedded' if LINE_ICON_URI else 'not found'}")
+
+print(f"[LOGO]  {'embedded from ' + str(LOGO_PATH)       if LOGO_URI        else 'not found (fallback text used)'}")
+print(f"[X]     {'embedded from ' + str(X_ICON_PATH)     if X_ICON_URI      else 'not found'}")
+print(f"[LINE]  {'embedded from ' + str(LINE_ICON_PATH)  if LINE_ICON_URI   else 'not found'}")
+print(f"[IG]    {'embedded from ' + str(INSTAGRAM_ICON_PATH) if INSTAGRAM_ICON_URI else 'not found'}")
+print(f"[TT]    {'embedded from ' + str(TIKTOK_ICON_PATH)    if TIKTOK_ICON_URI    else 'not found'}")
+
 print(f"[OK] 生成完了 → {OUT_DIR.resolve()} / 総件数{len(df)}")
+
