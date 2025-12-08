@@ -538,8 +538,9 @@ def main():
     export_df = s1_filtered[original_columns].copy()
 
     # ---- ⑧ Excelブックを開いて Sheet1 を更新 ----
-    wb = load_workbook(xlsx_path)
+    wb = load_workbook(xlsx_path, keep_vba=True)  # ここを変更
     ws = wb[SHEET1_NAME]
+
 
     # 1〜5行目はそのまま残し、6行目から export_df を書き込む
     start_row = 6
