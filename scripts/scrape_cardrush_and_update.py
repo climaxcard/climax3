@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 CardRush(ポケカ)をスクレイピングして最新買取リストを取得し、
-ポケカラッシュ.xlsx の Sheet1（Myca商品マスタ形式）と照合して値付け、
+pokeca_rush.xlsm の Sheet1（Myca商品マスタ形式）と照合して値付け、
 ・ポケカラッシュ_一致抽出.xlsx に一致データ＆レポートを出力
-・ポケカラッシュ.xlsx の Sheet1 に 1〜5行を残したまま 6行目から上書き
+・pokeca_rush.xlsm の Sheet1 に 1〜5行を残したまま 6行目から上書き
 ・Mycaアップロード用CSVを自動出力
 まで一括で行うスクリプト。
 """
@@ -21,30 +21,33 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
-from pathlib import Path 
+from pathlib import Path
 
 # ================== 設定 ==================
 # ★ GitHubリポジトリ(climax3) 基準のパスに変更
 REPO_ROOT = Path(__file__).resolve().parent.parent
-BASE_DIR  = REPO_ROOT / "data"
+BASE_DIR = REPO_ROOT / "data"
 
 # .xlsm に変更（さっき data に入れたファイル名に合わせる）
-XLSX_FILE       = BASE_DIR / "pokeca_rush.xlsm"             # 元のMyca形式のファイル
-MATCH_OUT_FILE  = BASE_DIR / "ポケカラッシュ_一致抽出.xlsx"      # 一致抽出＆レポート出力用
-MYCA_CSV_FILE   = BASE_DIR / "ポケカラッシュ_Mycaアップロード用.csv"
+XLSX_FILE = BASE_DIR / "pokeca_rush.xlsm"               # 元のMyca形式のファイル
+MATCH_OUT_FILE = BASE_DIR / "ポケカラッシュ_一致抽出.xlsx"   # 一致抽出＆レポート出力用
 
+# ★ Mycaアップロード用CSVの保存先をデスクトップ配下に変更
+MYCA_OUTPUT_DIR = Path(r"C:\Users\user\OneDrive\Desktop\ポケカラッシュ")
+MYCA_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+MYCA_CSV_FILE = MYCA_OUTPUT_DIR / "ポケカラッシュ_Mycaアップロード用.csv"
 
 SHEET1_NAME = "Sheet1"
 
 # Sheet1 側の列位置（Mycaテンプレそのまま）
-S1_NAME_COL_LETTER  = "C"  # 名前 (display_name)
+S1_NAME_COL_LETTER = "C"   # 名前 (display_name)
 S1_MODEL_COL_LETTER = "F"  # 型番 (cardnumber)
 S1_PRICE_COL_LETTER = "O"  # 価格（ここを上書き = buy_price）
-S1_G_COL_LETTER     = "G"  # rarity (AR 判定用)
+S1_G_COL_LETTER = "G"      # rarity (AR 判定用)
 
 # CardRush 側（スクレイピング結果 DataFrame）を
 # A=名前 / B=型番 / C=価格 として扱う
-S2_NAME_COL_LETTER  = "A"
+S2_NAME_COL_LETTER = "A"
 S2_MODEL_COL_LETTER = "B"
 S2_PRICE_COL_LETTER = "C"
 
@@ -101,7 +104,7 @@ def normalize_key(s):
     s = unicodedata.normalize("NFKC", str(s)).lower()
     for ch in [
         "（", "）", "[", "]", "(", ")", "「", "」", "『", "』", "【", "】",
-        "★", "☆", "・", "/", "\\", "-", "_", "　", " ", "：", ":"
+        "★", "☆", "・", "/", "\\", "-", "_", "　", " ", "：", ":",
     ]:
         s = s.replace(ch, "")
     return s
@@ -276,7 +279,8 @@ def adjust_price(row, s1_price_col, g_col_name):
 
     # --- 個別マッピング ---
     special_map = {
-        100: 50, 150: 50,
+        100: 50,
+        150: 50,
         200: 100,
         300: 150,
         400: 200,
@@ -319,8 +323,8 @@ def adjust_price(row, s1_price_col, g_col_name):
 
     # 6桁（100,000〜999,999）は 1万の位で四捨五入
     if 100000 <= new_p <= 999999:
-        q = new_p // 10000      # 万の位
-        r = new_p % 10000       # 下4桁
+        q = new_p // 10000  # 万の位
+        r = new_p % 10000   # 下4桁
         if r >= 5000:
             q += 1
         new_p = q * 10000
@@ -338,13 +342,14 @@ def adjust_price(row, s1_price_col, g_col_name):
 
 # ================== メイン処理 ==================
 def main():
-    xlsx_path     = XLSX_FILE
+    xlsx_path = XLSX_FILE
     match_out_path = MATCH_OUT_FILE
-    myca_csv_path  = MYCA_CSV_FILE
+    myca_csv_path = MYCA_CSV_FILE
 
     if not os.path.exists(xlsx_path):
         print(f"✖ 入力ファイルが見つかりません: {xlsx_path}")
-        sys.exit(1)
+        # sys.exit(1) の代わりに return
+        return
 
     # ---- ① CardRush スクレイピング（Sheet2相当） ----
     print("=== CardRush スクレイピング開始 ===")
@@ -358,24 +363,24 @@ def main():
     s1 = pd.read_excel(xlsx_path, sheet_name=SHEET1_NAME, dtype=str)
 
     # 列取得
-    s1_name_col  = get_col_by_letter(s1, S1_NAME_COL_LETTER)
+    s1_name_col = get_col_by_letter(s1, S1_NAME_COL_LETTER)
     s1_model_col = get_col_by_letter(s1, S1_MODEL_COL_LETTER)
     s1_price_col = get_col_by_letter(s1, S1_PRICE_COL_LETTER)
-    s1_g_col     = get_col_by_letter(s1, S1_G_COL_LETTER)  # AR判定
+    s1_g_col = get_col_by_letter(s1, S1_G_COL_LETTER)  # AR判定
 
-    s2_name_col  = get_col_by_letter(s2, S2_NAME_COL_LETTER)  # "name"
+    s2_name_col = get_col_by_letter(s2, S2_NAME_COL_LETTER)   # "name"
     s2_model_col = get_col_by_letter(s2, S2_MODEL_COL_LETTER) # "model"
     s2_price_col = get_col_by_letter(s2, S2_PRICE_COL_LETTER) # "price"
 
     # 正規化キー
-    s1["_name"]  = s1[s1_name_col].fillna("").map(normalize_key)
+    s1["_name"] = s1[s1_name_col].fillna("").map(normalize_key)
     s1["_model"] = s1[s1_model_col].fillna("").map(normalize_key)
-    s2["_name"]  = s2[s2_name_col].fillna("").map(normalize_key)
+    s2["_name"] = s2[s2_name_col].fillna("").map(normalize_key)
     s2["_model"] = s2[s2_model_col].fillna("").map(normalize_key)
 
     # バケット作成
     s2["__k_model3"] = s2["_model"].map(lambda x: frag(x, 3))
-    s2["__k_name3"]  = s2["_name"].map(lambda x: frag(x, 3))
+    s2["__k_name3"] = s2["_name"].map(lambda x: frag(x, 3))
 
     bucket_full, bucket_model, bucket_name = {}, {}, {}
     for idx, row in s2.iterrows():
@@ -459,14 +464,16 @@ def main():
         if chosen_j is not None:
             used_s2.add(chosen_j)
 
-        rows.append({
-            "s1_idx": i,
-            "s2_idx": chosen_j,
-            "名前一致率": chosen_nr,
-            "型番一致率": chosen_mr,
-            "平均一致率": chosen_score,
-            "閾値以上": chosen_score >= threshold
-        })
+        rows.append(
+            {
+                "s1_idx": i,
+                "s2_idx": chosen_j,
+                "名前一致率": chosen_nr,
+                "型番一致率": chosen_mr,
+                "平均一致率": chosen_score,
+                "閾値以上": chosen_score >= threshold,
+            }
+        )
 
     match_df = pd.DataFrame(rows)
 
@@ -480,44 +487,56 @@ def main():
     s2_key["s2_idx"] = s2.index
 
     report = (
-        match_df
-        .merge(s1_key, on="s1_idx", how="left")
-        .merge(s2_key, on="s2_idx", how="left")
-        [["S1_名前","S1_型番","S1_価格",
-          "S2_名前","S2_型番","S2_価格",
-          "名前一致率","型番一致率","平均一致率","閾値以上"]]
+        match_df.merge(s1_key, on="s1_idx", how="left")
+        .merge(s2_key, on="s2_idx", how="left")[  # ここから行を切り出し
+            [
+                "S1_名前",
+                "S1_型番",
+                "S1_価格",
+                "S2_名前",
+                "S2_型番",
+                "S2_価格",
+                "名前一致率",
+                "型番一致率",
+                "平均一致率",
+                "閾値以上",
+            ]
+        ]
     )
 
     # ---- ⑤ 一致した行だけ抽出 ----
     keep_idx = match_df.loc[match_df["閾値以上"], "s1_idx"]
     if len(keep_idx) == 0:
         print("⚠ 一致した行が1件もありません（threshold を下げるとマッチするかも）")
-        sys.exit(0)
+        # sys.exit(0) の代わりに return
+        return
 
     s1_filtered = s1.loc[keep_idx].copy().reset_index(drop=True)
     s1_filtered["s1_idx"] = keep_idx.values
 
     # s2側情報を結合
     s2_info = (
-        match_df.loc[match_df["閾値以上"], ["s1_idx","s2_idx","平均一致率"]]
+        match_df.loc[match_df["閾値以上"], ["s1_idx", "s2_idx", "平均一致率"]]
         .merge(s2_key, on="s2_idx", how="left")
-        .rename(columns={
-            "S2_価格": "S2_照合価格",
-            "S2_名前": "S2_照合名前",
-            "S2_型番": "S2_照合型番"
-        })
+        .rename(
+            columns={
+                "S2_価格": "S2_照合価格",
+                "S2_名前": "S2_照合名前",
+                "S2_型番": "S2_照合型番",
+            }
+        )
     )
 
     s1_filtered = s1_filtered.merge(
-        s2_info[["s1_idx","S2_照合価格","S2_照合名前","S2_照合型番","平均一致率"]],
+        s2_info[["s1_idx", "S2_照合価格", "S2_照合名前", "S2_照合型番", "平均一致率"]],
         on="s1_idx",
-        how="left"
+        how="left",
     )
 
     # ---- ⑥ 価格変換 ----
     s1_filtered["__new_price"] = s1_filtered.apply(
         lambda r: adjust_price(r, s1_price_col, s1_g_col),
-        axis=1
+        axis=1,
     )
 
     # O列へ上書き（DataFrame上）
@@ -531,16 +550,15 @@ def main():
         report.to_excel(writer, sheet_name="照合レポート", index=False)
     print(f"✓ 一致抽出ファイル出力: {match_out_full}")
 
-    # === ここから、「ポケカラッシュ.xlsx の Sheet1 に 6行目から上書き」 ===
+    # === ここから、「pokeca_rush.xlsm の Sheet1 に 6行目から上書き」 ===
 
     # 元のSheet1の列構成を取得（s1_filteredには余計な列も入ってるので）
     original_columns = s1.columns  # 元Sheet1の列順
     export_df = s1_filtered[original_columns].copy()
 
     # ---- ⑧ Excelブックを開いて Sheet1 を更新 ----
-    wb = load_workbook(xlsx_path, keep_vba=True)  # ここを変更
+    wb = load_workbook(xlsx_path, keep_vba=True)  # VBA付きで開く
     ws = wb[SHEET1_NAME]
-
 
     # 1〜5行目はそのまま残し、6行目から export_df を書き込む
     start_row = 6
@@ -561,11 +579,13 @@ def main():
             ws.cell(row=row_idx, column=j + 1).value = value
 
     wb.save(xlsx_path)
-    print(f"✓ ポケカラッシュ.xlsx の Sheet1 を 6行目から上書きしました: {xlsx_path}")
+    print(f"✓ pokeca_rush.xlsm の Sheet1 を 6行目から上書きしました: {xlsx_path}")
 
     # ---- ⑨ Myca用CSV自動出力 ----
     # 上書き後の Sheet1 をそのままCSV化（1〜5行目も含めて）
-    df_for_csv = pd.read_excel(xlsx_path, sheet_name=SHEET1_NAME, header=None, dtype=object)
+    df_for_csv = pd.read_excel(
+        xlsx_path, sheet_name=SHEET1_NAME, header=None, dtype=object
+    )
     df_for_csv.to_csv(myca_csv_path, index=False, header=False, encoding="utf-8-sig")
 
     print(f"✓ Mycaアップロード用CSVを出力しました: {myca_csv_path}")
@@ -573,4 +593,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import traceback
+
+    try:
+        main()
+    except Exception:
+        print("\n💥 例外が発生しました：")
+        traceback.print_exc()
