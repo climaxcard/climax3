@@ -280,16 +280,16 @@ def adjust_price(row, s1_price_col, g_col_name):
     # --- 個別マッピング ---
     special_map = {
         100: 50,
-        150: 50,
+        150: 100,
         200: 100,
-        300: 150,
-        400: 200,
-        500: 300,
-        600: 400,
-        700: 500,
-        800: 600,
-        900: 700,
-        1000: 800,
+        300: 200,
+        400: 300,
+        500: 400,
+        600: 500,
+        700: 600,
+        800: 700,
+        900: 800,
+        1000: 900,
     }
     if p in special_map:
         new_p = special_map[p]
@@ -333,8 +333,8 @@ def adjust_price(row, s1_price_col, g_col_name):
     if new_p >= 1000000:
         new_p = ((new_p + 100000 - 1) // 100000) * 100000
 
-    # --- AR補正 ---
-    if new_p <= 299 and g_val == "AR":
+    # --- AR/CHR/CSR 底上げ（～299 → 300）---
+    if new_p <= 299 and g_val in ("AR", "CHR", "CSR"):
         new_p = 300
 
     return new_p
